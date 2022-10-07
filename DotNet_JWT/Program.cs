@@ -1,1 +1,1 @@
-new CommonServerBuilder().Configure(WebApplication.CreateBuilder(args) , "MyConnection");
+new CommonServerBuilder().Configure(WebApplication.CreateBuilder(args));

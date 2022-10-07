@@ -2,15 +2,13 @@
 
 public class CommonServerBuilder
 {
-    public void Configure(WebApplicationBuilder builder, string appConnectionString)
+    public void Configure(WebApplicationBuilder builder)
     {
+        builder.Services.DbContextConfigure(builder);
 
-        string connectionString = builder.Configuration.GetConnectionString(appConnectionString);
+        builder.Services.JWTConfigure(builder);
 
-        builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<MigrationDbContext>();
-        builder.Services.AddDbContext<MigrationDbContext>(e => e.UseSqlServer(connectionString));
-
-        builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
+        builder.Services.AddScoped<IAuthService, AuthService>();
 
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
@@ -31,6 +29,7 @@ public class CommonServerBuilder
         }
 
         app.UseHttpsRedirection();
+        app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
         app.Run();
