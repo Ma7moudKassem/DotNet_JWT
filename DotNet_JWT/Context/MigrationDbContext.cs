@@ -1,8 +1,8 @@
 ﻿namespace DotNet_JWT;
 
-public class GenericContext : IdentityDbContext<IdentityUser>
+public class MigrationDbContext : IdentityDbContext<ApplicationUser>
 {
-    public GenericContext(DbContextOptions options) : base(options) { }
+    public MigrationDbContext(DbContextOptions options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

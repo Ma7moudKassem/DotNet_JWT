@@ -4,8 +4,6 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
 {
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
-        builder.ToTable("Kassem");
-
         builder.Property(e => e.FirstName).IsRequired();
         builder.Property(e => e.FirstName).HasMaxLength(50);
 
