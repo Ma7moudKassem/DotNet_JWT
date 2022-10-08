@@ -2,4 +2,5 @@
 
 public interface IAuthService
 {
+    Task<AuthEntity> RegisterAsync(RegisterEntity registerEntity);
 }
