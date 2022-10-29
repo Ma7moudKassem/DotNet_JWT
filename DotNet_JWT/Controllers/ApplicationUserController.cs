@@ -1,5 +1,8 @@
-﻿namespace DotNet_JWT;
+﻿using Microsoft.AspNetCore.Authorization;
 
+namespace DotNet_JWT;
+
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class ApplicationUserController : ControllerBase

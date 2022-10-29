@@ -1,10 +1,12 @@
 ﻿namespace DotNet_JWT;
 
-public static class JWTConfiguration
+public class JWTServerBuilder : IAPIBuilder
 {
-    public static void JWTConfigure(this IServiceCollection services, WebApplicationBuilder builder)
+    private readonly WebApplicationBuilder _builder;
+    public JWTServerBuilder(WebApplicationBuilder builder) => _builder = builder;
+    public void Configure(IServiceCollection services)
     {
-        services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
+        services.Configure<JWT>(_builder.Configuration.GetSection("JWT"));
 
         services.AddAuthentication(options => {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -19,9 +21,9 @@ public static class JWTConfiguration
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateLifetime = true,
-                ValidIssuer = builder.Configuration["JWT:Issuer"],
-                ValidAudience = builder.Configuration["JWT:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+                ValidIssuer = _builder.Configuration["JWT:Issuer"],
+                ValidAudience = _builder.Configuration["JWT:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_builder.Configuration["JWT:Key"]))
             };
         });
     }

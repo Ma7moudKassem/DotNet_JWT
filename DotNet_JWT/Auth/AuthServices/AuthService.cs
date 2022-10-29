@@ -4,12 +4,14 @@ namespace DotNet_JWT;
 
 public class AuthService : IAuthService
 {
-    private readonly UserManager<ApplicationUser> _userManager;
     private readonly JWT _jwt;
-    public AuthService(UserManager<ApplicationUser> userManager, IOptions<JWT> jwt)
+    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly UserManager<ApplicationUser> _userManager;
+    public AuthService(IOptions<JWT> jwt, RoleManager<IdentityRole> roleManager , UserManager<ApplicationUser> userManager)
     {
-        _userManager = userManager;
         _jwt = jwt.Value;
+        _roleManager = roleManager;
+        _userManager = userManager;
     }
 
     public async Task<AuthEntity> RegisterAsync(RegisterEntity registerEntity)
@@ -64,45 +66,45 @@ public class AuthService : IAuthService
             throw;
         };
     }
-    //public async Task<AuthEntity> GetTokenAsync(TokenRequestModel model)
-    //{
-    //    var AuthEntity = new AuthEntity();
+    public async Task<AuthEntity> LogInAsync(LogInModel model)
+    {
+        AuthEntity AuthEntity = new AuthEntity();
 
-    //    var user = await _userManager.FindByEmailAsync(model.Email);
+        ApplicationUser user = await _userManager.FindByNameAsync(model.UserName);
 
-    //    if (user is null || !await _userManager.CheckPasswordAsync(user, model.Password))
-    //    {
-    //        AuthEntity.Message = "Email or Password is incorrect!";
-    //        return AuthEntity;
-    //    }
+        if (user is null || !await _userManager.CheckPasswordAsync(user, model.Password))
+        {
+            AuthEntity.Message = "User Name or Password is incorrect!";
+            return AuthEntity;
+        }
 
-    //    var jwtSecurityToken = await CreateJwtToken(user);
-    //    var rolesList = await _userManager.GetRolesAsync(user);
+        JwtSecurityToken jwtSecurityToken = await CreateJwtToken(user);
+        IList<string> rolesList = await _userManager.GetRolesAsync(user);
 
-    //    AuthEntity.IsAuthenticated = true;
-    //    AuthEntity.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
-    //    AuthEntity.Email = user.Email;
-    //    AuthEntity.UserName = user.UserName;
-    //    AuthEntity.ExpiresOn = jwtSecurityToken.ValidTo;
-    //    AuthEntity.Roles = rolesList.ToList();
+        AuthEntity.IsAuthenticated = true;
+        AuthEntity.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+        AuthEntity.Email = user.Email;
+        AuthEntity.UserName = user.UserName;
+        AuthEntity.ExpiresOn = jwtSecurityToken.ValidTo;
+        AuthEntity.Roles = rolesList.ToList();
 
-    //    return AuthEntity;
-    //}
+        return AuthEntity;
+    }
 
-    //public async Task<string> AddRoleAsync(AddRoleModel model)
-    //{
-    //    var user = await _userManager.FindByIdAsync(model.UserId);
+    public async Task<string> AddRoleAsync(RoleModel model)
+    {
+        var user = await _userManager.FindByIdAsync(model.UserId.ToString());
 
-    //    if (user is null || !await _roleManager.RoleExistsAsync(model.Role))
-    //        return "Invalid user ID or Role";
+        if (user is null || !await _roleManager.RoleExistsAsync(model.Role))
+            return "Invalid user ID or Role";
 
-    //    if (await _userManager.IsInRoleAsync(user, model.Role))
-    //        return "User already assigned to this role";
+        if (await _userManager.IsInRoleAsync(user, model.Role))
+            return "User already assigned to this role";
 
-    //    var result = await _userManager.AddToRoleAsync(user, model.Role);
+        var result = await _userManager.AddToRoleAsync(user, model.Role);
 
-    //    return result.Succeeded ? string.Empty : "Sonething went wrong";
-    //}
+        return result.Succeeded ? string.Empty : "Sonething went wrong";
+    }
     private async Task<JwtSecurityToken> CreateJwtToken(ApplicationUser user)
     {
         try
@@ -112,17 +114,17 @@ public class AuthService : IAuthService
 
             List<Claim> roleClaims = new List<Claim>();
 
-            foreach (var role in roles)
+            foreach (string role in roles)
             {
                 roleClaims.Add(new Claim("roles", role));
             }
 
             IEnumerable<Claim> claims = new[]
             {
-            new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim("uid", user.Id)
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim("uid", user.Id)
             }
             .Union(userClaims)
             .Union(roleClaims);
